@@ -27,9 +27,9 @@ jobs:
             git add package.json package-lock.json
       # デプロイキーを追加した場合、以下のステップでSSHキーの使用を宣言する
       # ユーザーキーを設定した場合はこのステップは必要ない
-      # - add_ssh_keys:
-      #     fingerprints:
-      #       - <フィンガープリント>
+      - add_ssh_keys:
+          fingerprints:
+            - 64:c5:8c:e0:33:25:90:43:70:1b:76:eb:6e:ac:39:8d
       - run: # (d3)
           name: "ステージングされたファイルがあればGitHub PRを作成する"
           command: |

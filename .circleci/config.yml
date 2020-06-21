@@ -1,0 +1,52 @@
+version: 2.1
+
+jobs:
+  audit_job:
+    docker:
+      - image: circleci/node
+    steps:
+      - checkout
+      - run: # (d1)
+          name: "npm audit fixコマンドで依存パッケージを更新する"
+          command: |
+            npm audit fix
+      - run:
+          name: "Gitのセットアップ"
+          command: |
+            git config user.name ${CIRCLE_USERNAME}
+            git config user.email circleci@example.com
+      - run: # (d2)
+          name: "BRANCH環境変数をエクスポートする"
+          command: |
+            echo 'export BRANCH=npm_audit_fix/${CIRCLE_SHA1}' >> $BASH_ENV
+      - run:
+          name: "更新内容をステージングする"
+          command: |
+            git branch $BRANCH
+            git checkout $BRANCH
+            git add package.json package-lock.json
+      # デプロイキーを追加した場合、以下のステップでSSHキーの使用を宣言する
+      # ユーザーキーを設定した場合はこのステップは必要ない
+      # - add_ssh_keys:
+      #     fingerprints:
+      #       - <フィンガープリント>
+      - run: # (d3)
+          name: "ステージングされたファイルがあればGitHub PRを作成する"
+          command: |
+            git commit -m "Security Update from ${CIRCLE_BUILD_URL}" &&
+            git push origin $BRANCH &&
+            curl -u "${GITHUB_USER}":"${GITHUB_TOKEN}" -X POST -i \
+                https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/pulls \
+                -d '{ "title":"npm audit fix","base":"master","head":"'${BRANCH}'" }' || true
+workflows:
+  version: 2
+  audit:
+    triggers:
+      - schedule:
+          cron: "0 0 * * *"
+          filters:
+            branches:
+              only:
+                - master
+    jobs:
+      - audit_job

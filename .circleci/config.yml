@@ -13,7 +13,7 @@ jobs:
       - run:
           name: "Gitのセットアップ"
           command: |
-            git config user.name ${CIRCLE_USERNAME}
+            git config user.name username
             git config user.email circleci@example.com
       - run: # (d2)
           name: "BRANCH環境変数をエクスポートする"
